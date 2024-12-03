@@ -124,37 +124,6 @@ class ImmunizationCampaign:
                 self.states[neighbor] = 0
 
         return nodes_to_immunize
-    
-    def run_sis_with_immunization(graph, beta, mu, initial_infected, immunization_campaign, immunization_fraction):
-        """
-        Simula o modelo SIS com uma estratégia de imunização e retorna a fração final de nós infectados.
-
-        Args:
-            graph (nx.Graph): O grafo sobre o qual a simulação será executada.
-            beta (float): Taxa de infecção.
-            mu (float): Taxa de recuperação.
-            initial_infected (int): Número inicial de nós infectados.
-            immunization_campaign (ImmunizationCampaign): Instância da campanha de imunização.
-            immunization_fraction (float): Fração de nós a serem imunizados.
-
-        Returns:
-            float: Fração final de nós infectados no estado endêmico.
-        """
-        num_immunized = int(immunization_fraction * len(graph.nodes))
-
-        # Não imunizar mais do que o número total de nós menos os infectados iniciais
-        max_immunizable = len(graph.nodes) - initial_infected
-        num_immunized = min(num_immunized, max_immunizable)
-
-        immunization_campaign.immunize(num_nodes=num_immunized)
-
-        try:
-            sis = SISModel(graph, beta=beta, mu=mu, initial_infected=initial_infected, immunization_campaign=immunization_campaign)
-            sis.run(steps=200)
-            return sis.history[-1] / len(graph.nodes)
-        except ValueError as e:
-            # Se não há nós suficientes para iniciar a infecção, retornamos 0 como fração infectada
-            return 0.0
 
 
     def plot_graph(self, title="Graph After Immunization"):
