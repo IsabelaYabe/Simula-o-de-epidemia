@@ -118,7 +118,6 @@ class SISModel:
         new_history_data = sum(self.states.values())  
         self.history.append(new_history_data)
         self.time_step += 1
-        print(self.history)
 
     def run(self, steps=50):
         """
@@ -214,16 +213,34 @@ class SISModel:
         plt.show()
 
 if __name__ == "__main__":
-    n = 100
-    k_avg = 10
-    p = k_avg / (n - 1)
-    G = nx.erdos_renyi_graph(n, p, seed=42)
-
-    sis = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, seed=42)
-    sis.animate(steps=100, interval=300)
-    sis.plot()
-
+    #n = 100
+    #k_avg = 10
+    #p = k_avg / (n - 1)
+    #G = nx.erdos_renyi_graph(n, p, seed=42)
+    #
+    #sis = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, seed=42)
+    #sis.animate(steps=100, interval=300)
+    #sis.plot()
+    #
     #campaign = ImmunizationCampaign(graph=G, method="hubs", seed=42)
     #sis_with_immunization = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, immunization_campaign=campaign, seed=42)
     #sis_with_immunization.animate(steps=100, interval=300)
     #sis_with_immunization.plot()
+
+    N = 10_000  
+    k_medio = 20  
+    initial_infected = 5  
+    beta = 0.01 
+    mu_values = [0.1, 0.2, 0.3] 
+    m = k_medio // 2 
+
+    max_immunized = 300 
+    steps = 100
+
+    G = nx.barabasi_albert_graph(N, m)
+
+    methods = ["random", "hubs", "neighbors"]
+    campaign = ImmunizationCampaign(graph=G, method=methods[1], seed=42)
+    sis_with_immunization = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, immunization_campaign=campaign, seed=42)
+    sis_with_immunization.animate(steps=100, interval=300)
+    sis_with_immunization.plot()
