@@ -227,8 +227,8 @@ if __name__ == "__main__":
     #sis_with_immunization.animate(steps=100, interval=300)
     #sis_with_immunization.plot()
 
-    N = 10_000  
-    k_medio = 20  
+    N = 100
+    k_medio = 10  
     initial_infected = 5  
     beta = 0.01 
     mu_values = [0.1, 0.2, 0.3] 
