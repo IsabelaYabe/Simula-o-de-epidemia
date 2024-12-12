@@ -62,10 +62,10 @@ class SISModel:
         self.beta = beta
         self.mu = mu
         self.time_step = 0
-        self.history = []
-        self.states = {node: 0 for node in graph.nodes}
+        self.history = [] # para armazenar o número de infectados em cada etapa
+        self.states = {node: 0 for node in graph.nodes} # 0 para suscetível, 1 para infectado e -1 para imunizado
         self.campaign = immunization_campaign  
-        self.start_immunize = start_immunize
+        self.start_immunize = start_immunize 
 
         if seed is not None:
             random.seed(seed)

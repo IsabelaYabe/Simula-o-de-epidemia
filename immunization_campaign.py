@@ -55,7 +55,7 @@ class ImmunizationCampaign:
         """
         self.graph = graph
         self.states = {node: -1 for node in graph.nodes}
-        self.method = method
+        self.method = method.lower().strip()
         self.immunized_nodes = []  
         self.neighbors_of_immunized = []
         self.not_immunized = list(self.graph.nodes())
@@ -114,10 +114,11 @@ class ImmunizationCampaign:
 
         self.immunized_nodes.extend(nodes_to_immunize)
 
-        self.neighbors_of_immunized = set()
+        neighbors_of_immunized_set = set()
         for node in self.immunized_nodes:
-            self.neighbors_of_immunized.update(self.graph.neighbors(node))
-        self.neighbors_of_immunized -= set(self.immunized_nodes)
+            neighbors_of_immunized_set.update(self.graph.neighbors(node))
+        neighbors_of_immunized_set -= set(self.immunized_nodes)
+        self.neighbors_of_immunized = list(neighbors_of_immunized_set)
 
         for neighbor in self.neighbors_of_immunized:
             if self.states[neighbor] == -1:  
