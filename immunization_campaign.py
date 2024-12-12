@@ -17,41 +17,20 @@ Dependencies:
     - random
 """
 
-
 import networkx as nx
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import List, Optional
 
 class ImmunizationCampaign:
-    """
-    A class to simulate an immunization campaign on a network.
-
-    This class applies different immunization strategies to a graph, marking nodes as immunized and updating the 
-    states of their neighbors. It can visualize the network before and after the immunization process.
-
-    Attributes:
-        graph (networkx.Graph): The graph representing the network.
-        states (dict): A dictionary mapping nodes to their states:
-            -1: Susceptible (not immunized or influenced).
-             0: Neighbor of an immunized node (partially protected).
-             1: Immunized.
-        method (str): The immunization strategy ("random", "hubs", or "neighbors").
-        immunized_nodes (list): List of nodes that have been immunized.
-        neighbors_of_immunized (set): Set of nodes that are neighbors of immunized nodes.
-        not_immunized (list): List of nodes that are not immunized yet.
-    """
-    def __init__(self, graph, method="random", seed=None):
+    def __init__(self, graph: nx.Graph, method: str = "random", seed: Optional[int] = None):
         """
-        Initializes the ImmunizationCampaign instance.
+        Initialize the ImmunizationCampaign class.
 
-        Args:
-            graph (networkx.Graph): The graph representing the network.
-            method (str): The immunization strategy. Options are:
-                - "random": Randomly selects nodes to immunize.
-                - "hubs": Selects nodes with the highest degrees.
-                - "neighbors": Selects neighbors of randomly chosen nodes.
-            seed (int, optional): Seed for random number generation. Default is None.
+        :param graph: The graph on which the immunization campaign will be conducted.
+        :param method: The immunization method to use ('random', 'hubs', 'neighbors').
+        :param seed: Optional seed for random number generation.
         """
         self.graph = graph
         self.states = {node: -1 for node in graph.nodes}
@@ -62,42 +41,24 @@ class ImmunizationCampaign:
         if seed is not None:
             random.seed(seed)
 
-    def immunize(self, num_nodes):
+    def immunize(self, num_nodes: int) -> List[int]:
         """
-        Immunizes nodes in the graph based on the chosen strategy.
+        Immunize a specified number of nodes based on the chosen method.
 
-        Updates:
-            - The `states` dictionary is updated to mark immunized nodes as `1` and their neighbors as `0` 
-              (if they are not already immunized).
-
-        Args:
-            num_nodes (int): Number of nodes to immunize in this step.
-
-        Returns:
-            list: List of nodes that were immunized during this step.
-
-        Raises:
-            ValueError: If an invalid immunization strategy is provided.
+        :param num_nodes: The number of nodes to immunize.
+        :return: A list of immunized nodes.
         """
-        
         num_not_immunized = len(self.not_immunized)
-
-        if num_not_immunized < num_nodes:
-            size = num_not_immunized
-        else:
-            size = num_nodes
+        size = min(num_not_immunized, num_nodes)
 
         if self.method == "random":
             nodes_to_immunize = random.sample(self.not_immunized, size)
-
         elif self.method == "hubs":
-            nodes_to_immunize = sorted(
+            nodes_to_immunize = [node for node, _ in sorted(
                 [(node, degree) for node, degree in self.graph.degree if node in self.not_immunized],
                 key=lambda x: x[1], 
                 reverse=True
-            )[:size]
-            nodes_to_immunize = [node for node, _ in nodes_to_immunize]
-
+            )[:size]]
         elif self.method == "neighbors":
             neighbors = set()
             for node in random.sample(self.not_immunized, size):
@@ -126,13 +87,11 @@ class ImmunizationCampaign:
 
         return nodes_to_immunize
 
-
-    def plot_graph(self, title="Graph After Immunization"):
+    def plot_graph(self, title: str = "Graph After Immunization"):
         """
-        Plots the graph with color-coded nodes based on their status and adds a legend.
+        Plot the graph with nodes colored based on their immunization status.
 
-        Args:
-            title (str): The title of the plot. Default is "Graph After Immunization".
+        :param title: The title of the plot.
         """
         pos = nx.spring_layout(self.graph, seed=42)  
         node_colors = []

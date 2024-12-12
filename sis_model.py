@@ -16,7 +16,7 @@ Dependencies:
     - matplotlib.pyplot
     - matplotlib.animation
 """
-
+from copy import deepcopy
 import networkx as nx
 import random
 import numpy as np
@@ -42,7 +42,7 @@ class SISModel:
         campaign (ImmunizationCampaign): Optional immunization campaign applied before infection spread.
         start_immunize (int): Number of nodes to immunize at the beginning of the simulation.
     """
-    def __init__(self, graph, beta, mu, initial_infected=5, immunization_campaign=None, start_immunize=5, seed=None):
+    def __init__(self, graph, beta, mu, initial_infected=5, immunization_campaign=None, start_immunize=None, seed=None):
         """
         Initializes the SISModel simulation.
 
@@ -58,62 +58,40 @@ class SISModel:
         Raises:
             ValueError: If there are not enough unimmunized nodes to initiate infection.
         """        
-        self.graph = graph
+        self.graph = deepcopy(graph)
         self.beta = beta
         self.mu = mu
         self.time_step = 0
-        self.history = [] # para armazenar o número de infectados em cada etapa
-        self.states = {node: 0 for node in graph.nodes} # 0 para suscetível, 1 para infectado e -1 para imunizado
+        self.states = {node: 0 for node in self.graph.nodes()}
+        self.history = []
         self.campaign = immunization_campaign  
-        self.start_immunize = start_immunize 
+        self.start_immunize = start_immunize
 
         if seed is not None:
             random.seed(seed)
-
-        eligible_nodes = list(set(self.graph.nodes()))
+    
         if self.campaign:
             self.campaign.immunize(self.start_immunize)
-            eligible_nodes = list(set(eligible_nodes) - set(self.campaign.immunized_nodes))
-
-        
-            if len(eligible_nodes) < initial_infected:
-                raise ValueError("There are not enough unimmunized nodes to initiate infection")
-
-        initial_infected_nodes = random.sample(eligible_nodes, initial_infected)
+            for node in self.campaign.immunized_nodes:
+                if node in self.states:
+                    del self.states[node]
+    
+        initial_infected_nodes = random.sample(list(self.states.keys()), min(initial_infected, len(self.states)))
         for node in initial_infected_nodes:
             self.states[node] = 1
 
-        self.history.append(initial_infected)
-
-    def nodes_actives(self):
-        """
-        Retrieves the list of nodes that are active in the simulation (not immunized).
-
-        Returns:
-            list: Active nodes in the simulation.
-        """
-        if self.campaign:
-            return list(set(self.graph.nodes()) - set(self.campaign.immunized_nodes))
-        else:
-            return list(self.graph.nodes())
+        self.history.append(len(initial_infected_nodes))
 
     def step(self):
-        """
-        Executes one time step of the simulation.
+        new_states = deepcopy(self.states)
+        for node in [node for node, value in new_states.items() if value == 1]:
+            for neighbor in self.graph.neighbors(node):
+                if new_states[neighbor] == 0:
+                    if random.random() < self.beta:
+                        new_states[neighbor] = 1
+            if random.random() < self.mu:
+                new_states[node] = 0
 
-        Updates the states of nodes based on infection and recovery rules and tracks the number of infected nodes.
-        """
-        new_states = self.states.copy()
-        for node in self.nodes_actives():
-            if self.states[node] == 1:  
-                if random.random() < self.mu:
-                    new_states[node] = 0
-    
-                for neighbor in self.graph.neighbors(node):
-                    if (not self.campaign or neighbor not in self.campaign.immunized_nodes) and self.states[neighbor] == 0:
-                        if random.random() < self.beta:
-                            new_states[neighbor] = 1
-    
         self.states = new_states
         new_history_data = sum(self.states.values())  
         self.history.append(new_history_data)
@@ -228,7 +206,7 @@ if __name__ == "__main__":
     #sis_with_immunization.plot()
 
     N = 100
-    k_medio = 10  
+    k_medio = 5  
     initial_infected = 5  
     beta = 0.01 
     mu_values = [0.1, 0.2, 0.3] 
@@ -241,6 +219,6 @@ if __name__ == "__main__":
 
     methods = ["random", "hubs", "neighbors"]
     campaign = ImmunizationCampaign(graph=G, method=methods[1], seed=42)
-    sis_with_immunization = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, immunization_campaign=campaign, seed=42)
+    sis_with_immunization = SISModel(G, beta=0.3, mu=0.1, initial_infected=1, immunization_campaign=campaign, start_immunize=5, seed=42)
     sis_with_immunization.animate(steps=100, interval=300)
     sis_with_immunization.plot()
